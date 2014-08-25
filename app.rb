@@ -44,7 +44,7 @@ class FeedParser
       parsed.items.each do |item|
         feed.regex.match(item.description.to_s) do |m|
           @reactions << Reaction.new(
-            :title => feed.title,
+            :title => item.title,
             :image => m[:imageurl],
             :url   => item.link,
             :feed  => feed,
