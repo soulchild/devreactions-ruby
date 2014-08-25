@@ -26,16 +26,18 @@ end
 class FeedParser
   attr_reader :feeds, :reactions
 
-  def initialize
+  def initialize(*feeds)
     @feeds = []
-    @reactions = []
+    self.add_feeds(*feeds)
   end
 
   def add_feeds(*feeds)
-    @feeds.push(*feeds)
+    self.feeds.push(*feeds)
   end
 
   def reactions
+    reactions = Array.new
+
     feeds.each do |feed|
       parsed = RSS::Parser.parse(feed.feed_url)
 
@@ -43,7 +45,7 @@ class FeedParser
       no = 0
       parsed.items.each do |item|
         feed.regex.match(item.description.to_s) do |m|
-          @reactions << Reaction.new(
+          reactions << Reaction.new(
             :title => item.title,
             :image => m[:imageurl],
             :url   => item.link,
@@ -54,7 +56,7 @@ class FeedParser
       end
     end
 
-    @reactions
+    reactions
   end
 end
 
@@ -64,8 +66,7 @@ class DevReactions < Sinatra::Application
   configure do
     @@no_of_requests_served = 0
     
-    FEEDPARSER = FeedParser.new
-    FEEDPARSER.add_feeds(
+    FEEDPARSER = FeedParser.new(
       Feed.new(
         :title       => 'DevOps Reactions',
         :feed_url    => 'http://devopsreactions.tumblr.com/rss',
