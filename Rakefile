@@ -8,7 +8,7 @@ namespace :assets do
   namespace :compile do
     task :clear do
       puts "*** Clearing CSS ***"
-      system "rm -Rfv public/css/*"
+      system "rm -Rfv public/assets/*"
     end
 
     task :default => :clear do

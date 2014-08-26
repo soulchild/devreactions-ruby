@@ -73,7 +73,7 @@ class DevReactions < Sinatra::Application
         :regex       => %r{<img.+?src="(?<imageurl>https?://.+?)"},
         ),
       Feed.new(
-        :title       => 'Security Reactions',
+        :title       => 'Infosec Reactions',
         :feed_url    => 'http://securityreactions.tumblr.com/rss',
         :regex       => %r{<img.+?src="(?<imageurl>https?://.+?)"},
         ),
