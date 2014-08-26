@@ -90,11 +90,16 @@ class DevReactions < Sinatra::Application
     @@no_of_requests_served += 1
 
     @reaction = @@reactions.sample
-    erb :reaction, { 
-      :locals => { 
-        :no_of_reactions => @@reactions.count 
-      } 
-    }
+
+    if (@reaction)
+      erb :reaction, { 
+        :locals => { 
+          :no_of_reactions => @@reactions.count 
+        } 
+      }
+    else
+      erb :no_reaction
+    end
   end
 
   # start the server if ruby file executed directly
