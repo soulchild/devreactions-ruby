@@ -48,20 +48,20 @@ class DevReactions < Sinatra::Application
   end
 
   namespace '/api' do
-    namespace '/reaction' do
+    namespace '/reactions' do
       # Returns a random reaction as JSON
       get '/random' do
         @reaction = @@reactions.sample
-        reaction_as_json @reaction
+        if @reaction
+          json({
+            :count    => @@reactions.count,
+            :reaction => @reaction.serialize
+          }) 
+        else
+          status 404
+        end
       end
     end
-  end
-
-  def reaction_as_json(reaction)
-    json({
-      :count    => @@reactions.count,
-      :reaction => reaction.serialize
-    }) 
   end
 
   # start the server if ruby file executed directly
