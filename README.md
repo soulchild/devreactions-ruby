@@ -10,7 +10,7 @@ This little Ruby/Sinatra app fetches those feeds and displays the GIFs in a rand
 
 ```bash
 bundle install
-rake assets:compile
+rake
 rackup
 ```
 

@@ -26,7 +26,7 @@ RUN ["/usr/bin/bundle", "install"]
 ADD . /devreactions
 
 # Compile assets
-RUN ["/usr/bin/bundle", "exec", "rake", "assets:compile"]
+RUN ["/usr/bin/bundle", "exec", "rake"]
 
 # Expose ports
 EXPOSE 8080
