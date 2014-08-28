@@ -1,70 +1,22 @@
+$LOAD_PATH.unshift(File.dirname(__FILE__))
+
 require 'sinatra/base'
+require 'sinatra/json'
+require 'sinatra/namespace'
 require 'rss'
 
-class Feed
-  attr_reader :title, :feed_url, :regex
-
-  def initialize(params)
-    @title = params[:title]
-    @feed_url = params[:feed_url]
-    @regex = params[:regex]
-  end
-end
-
-class Reaction
-  attr_reader :title, :url, :image, :no, :feed
-
-  def initialize(params)
-    @title = params[:title]
-    @url = params[:url]
-    @image = params[:image]
-    @feed = params[:feed]
-    @no = params[:no]
-  end
-end
-
-class FeedParser
-  attr_reader :feeds, :reactions
-
-  def initialize(*feeds)
-    @feeds = []
-    self.add_feeds(*feeds)
-  end
-
-  def add_feeds(*feeds)
-    self.feeds.push(*feeds)
-  end
-
-  def reactions
-    reactions = Array.new
-
-    feeds.each do |feed|
-      parsed = RSS::Parser.parse(feed.feed_url)
-
-      # Extract info from every item in the feed
-      no = 0
-      parsed.items.each do |item|
-        feed.regex.match(item.description.to_s) do |m|
-          reactions << Reaction.new(
-            :title => item.title,
-            :image => m[:imageurl],
-            :url   => item.link,
-            :feed  => feed,
-            :no    => no += 1
-            )
-        end
-      end
-    end
-
-    reactions
-  end
-end
+require 'lib/feed'
+require 'lib/feedparser'
 
 class DevReactions < Sinatra::Application
-  set :bind, '0.0.0.0'
+  helpers Sinatra::JSON
 
+  set :bind, '0.0.0.0'
+  
   configure do
-    @@no_of_requests_served = 0
+    set :json_content_type, :js, :charset => 'utf-8'
+
+    @@requests_served = 0
     
     FEEDPARSER = FeedParser.new(
       Feed.new(
@@ -80,26 +32,36 @@ class DevReactions < Sinatra::Application
       )
   end
 
-  get '/' do
+  before do
     # Reload reactions every n requests
-    if (@@no_of_requests_served == 0 || @@no_of_requests_served >= 100)
-      @@no_of_requests_served = 0
+    if @@requests_served % 100 == 0
+      @@requests_served = 0
       @@reactions = FEEDPARSER.reactions
     end
 
-    @@no_of_requests_served += 1
+    @@requests_served += 1
+  end
 
-    @reaction = @@reactions.sample
+  # Index route
+  get '/' do
+    erb :reaction
+  end
 
-    if (@reaction)
-      erb :reaction, { 
-        :locals => { 
-          :no_of_reactions => @@reactions.count 
-        } 
-      }
-    else
-      erb :no_reaction
+  namespace '/api' do
+    namespace '/reaction' do
+      # Returns a random reaction as JSON
+      get '/random' do
+        @reaction = @@reactions.sample
+        reaction_as_json @reaction
+      end
     end
+  end
+
+  def reaction_as_json(reaction)
+    json({
+      :count    => @@reactions.count,
+      :reaction => reaction.serialize
+    }) 
   end
 
   # start the server if ruby file executed directly
